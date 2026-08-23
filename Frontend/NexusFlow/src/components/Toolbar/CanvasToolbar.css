@@ -1,0 +1,50 @@
+/* ===== Canvas Toolbar ===== */
+.canvas-toolbar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  background: rgba(15, 15, 30, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.canvas-toolbar__btn {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+}
+
+.canvas-toolbar__btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text);
+  transform: scale(1.05);
+}
+
+.canvas-toolbar__btn:active {
+  transform: scale(0.95);
+}
+
+.canvas-toolbar__btn--danger:hover {
+  background: rgba(244, 63, 94, 0.15);
+  color: var(--accent-rose);
+}
+
+.canvas-toolbar__divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 2px;
+}

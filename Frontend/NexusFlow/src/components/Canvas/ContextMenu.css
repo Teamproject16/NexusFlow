@@ -1,0 +1,46 @@
+.context-menu {
+  position: absolute;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-sidebar);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  padding: 4px;
+  min-width: 140px;
+}
+
+.context-menu__btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.context-menu__btn:hover {
+  background: var(--bg-surface-hover);
+}
+
+.context-menu__btn--danger {
+  color: var(--accent-rose);
+}
+
+.context-menu__btn--danger:hover {
+  background: rgba(244, 63, 94, 0.15);
+}
+
+.context-menu__divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}

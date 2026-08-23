@@ -1,0 +1,403 @@
+/* ===== Sidebar Container ===== */
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100%;
+  background: var(--bg-sidebar);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ===== Header ===== */
+.sidebar__header {
+  padding: 20px 20px 16px;
+  flex-shrink: 0;
+}
+
+.sidebar__logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar__logo-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+.sidebar__logo-text h1 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.sidebar__version {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-dim);
+  background: var(--bg-surface);
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+/* ===== Divider ===== */
+.sidebar__divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0 20px;
+  flex-shrink: 0;
+}
+
+/* ===== Section ===== */
+.sidebar__section {
+  padding: 20px 20px 8px;
+  flex-shrink: 0;
+}
+
+.sidebar__section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.sidebar__section-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ===== Categories Container ===== */
+.sidebar__categories {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+/* ===== Category ===== */
+.sidebar__category {
+  margin-bottom: 4px;
+}
+
+/* ===== Category Header ===== */
+.sidebar__category-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.sidebar__category-header:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Category dot */
+.sidebar__category-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sidebar__category-dot--emerald {
+  background: var(--accent-emerald);
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.4);
+}
+
+.sidebar__category-dot--violet {
+  background: #a78bfa;
+  box-shadow: 0 0 6px rgba(167, 139, 250, 0.4);
+}
+
+.sidebar__category-dot--amber {
+  background: var(--accent-amber);
+  box-shadow: 0 0 6px rgba(251, 191, 36, 0.4);
+}
+
+.sidebar__category-title {
+  flex: 1;
+  letter-spacing: 0.01em;
+}
+
+/* Node count badge */
+.sidebar__category-count {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: var(--bg-surface);
+  padding: 1px 6px;
+  border-radius: 8px;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Chevron */
+.sidebar__chevron {
+  transition: transform var(--transition);
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.sidebar__chevron--open {
+  transform: rotate(90deg);
+}
+
+/* ===== Collapsible Node List ===== */
+.sidebar__category-nodes {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--transition);
+  overflow: hidden;
+}
+
+.sidebar__category-nodes--open {
+  grid-template-rows: 1fr;
+}
+
+.sidebar__category-nodes > :first-child {
+  /* Wrapper for collapsible children — this is needed for the grid-rows trick.
+     But since we're mapping directly, we wrap with a div in the inner content.
+     Actually, the direct children are the cards, so we need a wrapper. */
+}
+
+/* Since grid-template-rows trick needs a single child, let's use max-height instead */
+.sidebar__category-nodes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 12px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height var(--transition-slow), padding var(--transition-slow), opacity var(--transition);
+  opacity: 0;
+}
+
+.sidebar__category-nodes--open {
+  max-height: 400px;
+  padding: 4px 12px 8px;
+  opacity: 1;
+}
+
+/* ===== Node Cards ===== */
+.sidebar__node-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  cursor: grab;
+  transition: all var(--transition);
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar__node-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.sidebar__node-card--emerald::before {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.08), transparent);
+}
+
+.sidebar__node-card--violet::before {
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.08), transparent);
+}
+
+.sidebar__node-card--amber::before {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.08), transparent);
+}
+
+.sidebar__node-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.sidebar__node-card:hover::before {
+  opacity: 1;
+}
+
+.sidebar__node-card:active {
+  cursor: grabbing;
+  transform: translateY(0) scale(0.98);
+}
+
+.sidebar__node-card--emerald:hover {
+  border-color: rgba(52, 211, 153, 0.3);
+  box-shadow: 0 4px 12px rgba(52, 211, 153, 0.1);
+}
+
+.sidebar__node-card--violet:hover {
+  border-color: rgba(167, 139, 250, 0.3);
+  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.1);
+}
+
+.sidebar__node-card--amber:hover {
+  border-color: rgba(251, 191, 36, 0.3);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.1);
+}
+
+/* ===== Node Icon ===== */
+.sidebar__node-icon {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar__node-icon--emerald {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.2), rgba(52, 211, 153, 0.05));
+  color: var(--accent-emerald);
+}
+
+.sidebar__node-icon--violet {
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(167, 139, 250, 0.05));
+  color: #a78bfa;
+}
+
+.sidebar__node-icon--amber {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(251, 191, 36, 0.05));
+  color: var(--accent-amber);
+}
+
+/* ===== Node Info ===== */
+.sidebar__node-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar__node-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__node-desc {
+  font-size: 10.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== Drag Hint ===== */
+.sidebar__node-drag-hint {
+  color: var(--text-dim);
+  opacity: 0;
+  transition: opacity var(--transition);
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.sidebar__node-card:hover .sidebar__node-drag-hint {
+  opacity: 0.5;
+}
+
+/* ===== Footer ===== */
+.sidebar__footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sidebar__help {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 240px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 60px;
+    overflow: hidden;
+  }
+
+  .sidebar__header,
+  .sidebar__section,
+  .sidebar__footer {
+    display: none;
+  }
+
+  .sidebar__divider {
+    display: none;
+  }
+
+  .sidebar__category-header {
+    justify-content: center;
+    padding: 10px;
+  }
+
+  .sidebar__category-title,
+  .sidebar__category-count,
+  .sidebar__chevron {
+    display: none;
+  }
+
+  .sidebar__category-nodes--open {
+    padding: 4px;
+  }
+
+  .sidebar__node-card {
+    justify-content: center;
+    padding: 8px;
+  }
+
+  .sidebar__node-info,
+  .sidebar__node-drag-hint {
+    display: none;
+  }
+}
