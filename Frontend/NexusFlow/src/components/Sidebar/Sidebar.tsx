@@ -24,105 +24,83 @@ const ip = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 
 const categories: Category[] = [
   {
     id: 'data-source',
-    title: 'Data Sources',
+    title: 'Data Sources (Sensors)',
     accent: 'emerald',
     nodes: [
       {
-        type: 'apiSource',
-        label: 'API Fetch',
-        description: 'Fetch from REST API',
-        icon: (
-          <svg {...ip}>
-            <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9m-9 9a9 9 0 0 1 9-9" />
-          </svg>
-        ),
-      },
-      {
-        type: 'dbSource',
-        label: 'Database',
-        description: 'Query a database',
-        icon: (
-          <svg {...ip}>
-            <ellipse cx="12" cy="5" rx="9" ry="3" />
-            <path d="M21 12c0 1.66-4.03 3-9 3s-9-1.34-9-3" />
-            <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5" />
-          </svg>
-        ),
-      },
-      {
-        type: 'fileSource',
-        label: 'File Import',
-        description: 'Import from file',
-        icon: (
-          <svg {...ip}>
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-          </svg>
-        ),
-      },
-      {
-        type: 'timerSource',
-        label: 'Timer',
-        description: 'Schedule triggers',
+        type: 'sensorTurbine',
+        label: 'Turbine Sensor',
+        description: 'Vibration & RPM',
         icon: (
           <svg {...ip}>
             <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
+            <path d="M12 2a10 10 0 0 1 10 10" />
+            <path d="M12 2a10 10 0 0 0-10 10" />
+            <circle cx="12" cy="12" r="3" />
+            <line x1="12" y1="9" x2="12" y2="2" />
+            <line x1="12" y1="15" x2="12" y2="22" />
+            <line x1="9" y1="12" x2="2" y2="12" />
+            <line x1="15" y1="12" x2="22" y2="12" />
+          </svg>
+        ),
+      },
+      {
+        type: 'sensorTemp',
+        label: 'Temperature Sensor',
+        description: 'Heat & Thermal Data',
+        icon: (
+          <svg {...ip}>
+            <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
+          </svg>
+        ),
+      },
+      {
+        type: 'sensorPressure',
+        label: 'Pressure Sensor',
+        description: 'Fluid & Gas PSI',
+        icon: (
+          <svg {...ip}>
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 16 16 12 12 8" />
+            <line x1="8" y1="12" x2="16" y2="12" />
           </svg>
         ),
       },
     ],
   },
   {
-    id: 'math',
-    title: 'Math Operations',
+    id: 'filters',
+    title: 'Math & Filters',
     accent: 'violet',
     nodes: [
       {
-        type: 'mathAdd',
-        label: 'Add',
-        description: 'Sum two values',
+        type: 'filterMovingAverage',
+        label: 'Moving Average',
+        description: 'Smooth noisy telemetry',
         icon: (
           <svg {...ip}>
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="16" />
-            <line x1="8" y1="12" x2="16" y2="12" />
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
           </svg>
         ),
       },
       {
-        type: 'mathMultiply',
-        label: 'Multiply',
-        description: 'Multiply values',
-        icon: (
-          <svg {...ip}>
-            <circle cx="12" cy="12" r="10" />
-            <line x1="15" y1="9" x2="9" y2="15" />
-            <line x1="9" y1="9" x2="15" y2="15" />
-          </svg>
-        ),
-      },
-      {
-        type: 'mathAverage',
-        label: 'Average',
-        description: 'Compute mean value',
-        icon: (
-          <svg {...ip}>
-            <line x1="4" y1="20" x2="20" y2="4" />
-            <circle cx="12" cy="6" r="2" />
-            <circle cx="12" cy="18" r="2" />
-          </svg>
-        ),
-      },
-      {
-        type: 'mathCompare',
-        label: 'Compare',
-        description: 'Branch by condition',
+        type: 'filterThreshold',
+        label: 'Threshold Check',
+        description: 'Branch if value > X',
         icon: (
           <svg {...ip}>
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+        ),
+      },
+      {
+        type: 'filterMerge',
+        label: 'Data Merge',
+        description: 'Combine data streams',
+        icon: (
+          <svg {...ip}>
+            <path d="M12 2v20" />
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
           </svg>
         ),
       },
@@ -134,9 +112,19 @@ const categories: Category[] = [
     accent: 'amber',
     nodes: [
       {
-        type: 'emailAction',
-        label: 'Send Email',
-        description: 'Email notification',
+        type: 'actionSms',
+        label: 'SMS Alert',
+        description: 'Send text notification',
+        icon: (
+          <svg {...ip}>
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        ),
+      },
+      {
+        type: 'actionEmail',
+        label: 'Email Alert',
+        description: 'Send email alert',
         icon: (
           <svg {...ip}>
             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -145,84 +133,13 @@ const categories: Category[] = [
         ),
       },
       {
-        type: 'webhookAction',
-        label: 'Webhook',
-        description: 'POST to endpoint',
+        type: 'actionWebhook',
+        label: 'Webhook Trigger',
+        description: 'Trigger external API',
         icon: (
           <svg {...ip}>
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-          </svg>
-        ),
-      },
-      {
-        type: 'logAction',
-        label: 'Log Output',
-        description: 'Log to console',
-        icon: (
-          <svg {...ip}>
-            <polyline points="4 17 10 11 4 5" />
-            <line x1="12" y1="19" x2="20" y2="19" />
-          </svg>
-        ),
-      },
-      {
-        type: 'saveAction',
-        label: 'Save File',
-        description: 'Export data to file',
-        icon: (
-          <svg {...ip}>
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-            <polyline points="17 21 17 13 7 13 7 21" />
-            <polyline points="7 3 7 8 15 8" />
-          </svg>
-        ),
-      },
-    ],
-  },
-  {
-    id: 'ai-models',
-    title: 'AI Models',
-    accent: 'rose',
-    nodes: [
-      {
-        type: 'aiLlm',
-        label: 'LLM Generate',
-        description: 'Generate text via API',
-        icon: (
-          <svg {...ip}>
-            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-          </svg>
-        ),
-      },
-    ],
-  },
-  {
-    id: 'transformation',
-    title: 'Transformation',
-    accent: 'indigo',
-    nodes: [
-      {
-        type: 'transformFilter',
-        label: 'Filter Data',
-        description: 'Exclude items by rule',
-        icon: (
-          <svg {...ip}>
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-          </svg>
-        ),
-      },
-      {
-        type: 'transformMap',
-        label: 'Map Data',
-        description: 'Transform schema',
-        icon: (
-          <svg {...ip}>
-            <polyline points="16 3 21 3 21 8" />
-            <line x1="4" y1="20" x2="21" y2="3" />
-            <polyline points="21 16 21 21 16 21" />
-            <line x1="15" y1="15" x2="21" y2="21" />
-            <line x1="4" y1="4" x2="9" y2="9" />
           </svg>
         ),
       },
@@ -259,10 +176,8 @@ const GripIcon = () => (
 function Sidebar() {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({
     'data-source': true,
-    'math': false,
-    'action': false,
-    'ai-models': true,
-    'transformation': true,
+    'filters': true,
+    'action': true,
   });
 
   const toggleCategory = (id: string) => {
@@ -287,7 +202,7 @@ function Sidebar() {
           </div>
           <div className="sidebar__logo-text">
             <h1>NexusFlow</h1>
-            <span className="sidebar__version">v1.0</span>
+            <span className="sidebar__version">IoT Edition</span>
           </div>
         </div>
       </div>
@@ -296,7 +211,7 @@ function Sidebar() {
 
       {/* Section Title */}
       <div className="sidebar__section">
-        <h2 className="sidebar__section-title">Node Library</h2>
+        <h2 className="sidebar__section-title">Telemetry Library</h2>
         <p className="sidebar__section-desc">Drag nodes onto the canvas</p>
       </div>
 
@@ -354,7 +269,7 @@ function Sidebar() {
             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
             <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
-          <span>Drag & drop to build your workflow</span>
+          <span>Drag sensors & rules</span>
         </div>
       </div>
     </aside>

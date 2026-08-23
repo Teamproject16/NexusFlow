@@ -21,57 +21,40 @@ import '@xyflow/react/dist/style.css';
 import { nodeTypes } from '../nodes/nodeTypes';
 import CanvasToolbar from '../Toolbar/CanvasToolbar';
 import ContextMenu from './ContextMenu';
+import AlertsPanel from './AlertsPanel';
 import { getLayoutedElements } from '../../utils/layout';
 import { runWorkflow, type NodeStatus } from '../../utils/engine';
+import { deployGraph, ingestTelemetry } from '../../utils/api';
+import { useBackendSocket } from '../../hooks/useBackendSocket';
 import './FlowCanvas.css';
 
-/* ===== Initial Seed Data ===== */
+/* ===== Initial Seed Data (IoT Pipeline) ===== */
 const initialNodes: Node[] = [
   {
-    id: 'node-1',
-    type: 'apiSource',
-    position: { x: 60, y: 80 },
-    data: { label: 'Users API', description: '/api/v1/users' },
+    id: 'sensor-1',
+    type: 'sensorTurbine',
+    position: { x: 100, y: 150 },
+    data: { label: 'Turbine Sensor', description: 'Vibration & RPM' },
   },
   {
-    id: 'node-2',
-    type: 'dbSource',
-    position: { x: 60, y: 300 },
-    data: { label: 'Orders DB', description: 'SELECT * FROM orders' },
+    id: 'filter-1',
+    type: 'filterMovingAverage',
+    position: { x: 450, y: 150 },
+    data: { label: 'Moving Average', description: 'Smooth noisy telemetry' },
   },
   {
-    id: 'node-3',
-    type: 'mathAdd',
-    position: { x: 400, y: 160 },
-    data: { label: 'Merge Data', description: 'Combine datasets' },
-  },
-  {
-    id: 'node-4',
-    type: 'mathCompare',
-    position: { x: 700, y: 160 },
-    data: { label: 'Validate', description: 'Check threshold' },
-  },
-  {
-    id: 'node-5',
-    type: 'emailAction',
-    position: { x: 1020, y: 80 },
-    data: { label: 'Notify Team', description: 'Alert on success' },
-  },
-  {
-    id: 'node-6',
-    type: 'logAction',
-    position: { x: 1020, y: 300 },
-    data: { label: 'Error Log', description: 'Log failures' },
+    id: 'action-1',
+    type: 'actionSms',
+    position: { x: 800, y: 150 },
+    data: { label: 'SMS Alert', description: 'Send text notification' },
   },
 ];
 
 const initialEdges: Edge[] = [
   {
-    id: 'e-1-3',
-    source: 'node-1',
-    target: 'node-3',
-    sourceHandle: 'source',
-    targetHandle: 'input-a',
+    id: 'e-1-2',
+    source: 'sensor-1',
+    target: 'filter-1',
     animated: true,
     type: 'smoothstep',
     markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14 },
@@ -79,47 +62,12 @@ const initialEdges: Edge[] = [
   },
   {
     id: 'e-2-3',
-    source: 'node-2',
-    target: 'node-3',
-    sourceHandle: 'source',
-    targetHandle: 'input-b',
+    source: 'filter-1',
+    target: 'action-1',
     animated: true,
     type: 'smoothstep',
     markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14 },
-    style: { stroke: '#34d399', strokeWidth: 2 },
-  },
-  {
-    id: 'e-3-4',
-    source: 'node-3',
-    target: 'node-4',
-    sourceHandle: 'source',
-    targetHandle: 'input-a',
-    animated: true,
-    type: 'smoothstep',
-    markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14 },
-    style: { stroke: '#a78bfa', strokeWidth: 2 },
-  },
-  {
-    id: 'e-4-5',
-    source: 'node-4',
-    target: 'node-5',
-    sourceHandle: 'true',
-    targetHandle: 'target',
-    animated: true,
-    type: 'smoothstep',
-    markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14 },
-    style: { stroke: '#fbbf24', strokeWidth: 2 },
-  },
-  {
-    id: 'e-4-6',
-    source: 'node-4',
-    target: 'node-6',
-    sourceHandle: 'false',
-    targetHandle: 'target',
-    animated: true,
-    type: 'smoothstep',
-    markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14 },
-    style: { stroke: '#fbbf24', strokeWidth: 2 },
+    style: { stroke: '#8b5cf6', strokeWidth: 2 },
   },
 ];
 
@@ -131,26 +79,15 @@ function getNextNodeId() {
 
 /* ===== Default labels per node type ===== */
 const defaultNodeData: Record<string, { label: string; description: string }> = {
-  /* Data Sources */
-  apiSource: { label: 'API Fetch', description: 'Fetch from REST API' },
-  dbSource: { label: 'Database', description: 'Query a database' },
-  fileSource: { label: 'File Import', description: 'Import from file' },
-  timerSource: { label: 'Timer', description: 'Schedule triggers' },
-  /* Math Operations */
-  mathAdd: { label: 'Add', description: 'Sum two values' },
-  mathMultiply: { label: 'Multiply', description: 'Multiply values' },
-  mathAverage: { label: 'Average', description: 'Compute mean' },
-  mathCompare: { label: 'Compare', description: 'Branch by condition' },
-  /* Action Triggers */
-  emailAction: { label: 'Send Email', description: 'Email notification' },
-  webhookAction: { label: 'Webhook', description: 'POST to endpoint' },
-  logAction: { label: 'Log Output', description: 'Log to console' },
-  saveAction: { label: 'Save File', description: 'Export data' },
-  /* AI Models */
-  aiLlm: { label: 'LLM Generate', description: 'Generate text via API' },
-  /* Transformation */
-  transformFilter: { label: 'Filter Data', description: 'Exclude items by rule' },
-  transformMap: { label: 'Map Data', description: 'Transform schema' },
+  sensorTurbine: { label: 'Turbine Sensor', description: 'Vibration & RPM' },
+  sensorTemp: { label: 'Temperature Sensor', description: 'Heat & Thermal Data' },
+  sensorPressure: { label: 'Pressure Sensor', description: 'Fluid & Gas PSI' },
+  filterMovingAverage: { label: 'Moving Average', description: 'Smooth noisy telemetry' },
+  filterThreshold: { label: 'Threshold Check', description: 'Branch if value > X' },
+  filterMerge: { label: 'Data Merge', description: 'Combine data streams' },
+  actionSms: { label: 'SMS Alert', description: 'Send text notification' },
+  actionEmail: { label: 'Email Alert', description: 'Send email alert' },
+  actionWebhook: { label: 'Webhook Trigger', description: 'Trigger external API' },
 };
 
 /* ===== FlowCanvas Component ===== */
@@ -162,6 +99,10 @@ function FlowCanvas() {
   const { screenToFlowPosition, fitView, updateNodeData } = reactFlowInstance;
   const [menu, setMenu] = useState<{ id: string; top: number; left: number } | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [isDeploying, setIsDeploying] = useState(false);
+  const [deployStatus, setDeployStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [isSimulating, setIsSimulating] = useState(false);
+  const { isConnected, alerts, clearAlerts } = useBackendSocket();
 
   /* --- Connection handler --- */
   const onConnect = useCallback(
@@ -238,6 +179,47 @@ function FlowCanvas() {
     },
     [screenToFlowPosition, setNodes]
   );
+
+  /* --- Deploy to Backend handler --- */
+  const onDeploy = useCallback(async () => {
+    if (isDeploying) return;
+    setIsDeploying(true);
+    setDeployStatus('idle');
+    try {
+      const flow = reactFlowInstance.toObject();
+      await deployGraph(flow);
+      setDeployStatus('success');
+      setTimeout(() => setDeployStatus('idle'), 3000);
+    } catch (err) {
+      console.error('Deploy failed:', err);
+      setDeployStatus('error');
+      setTimeout(() => setDeployStatus('idle'), 3000);
+    } finally {
+      setIsDeploying(false);
+    }
+  }, [isDeploying, reactFlowInstance]);
+
+  /* --- Simulate Telemetry handler --- */
+  const simulateRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const onToggleSimulate = useCallback(() => {
+    if (isSimulating) {
+      if (simulateRef.current) clearInterval(simulateRef.current);
+      simulateRef.current = null;
+      setIsSimulating(false);
+    } else {
+      setIsSimulating(true);
+      simulateRef.current = setInterval(async () => {
+        const sensorTypes = ['sensorTurbine', 'sensorTemp', 'sensorPressure'];
+        const type = sensorTypes[Math.floor(Math.random() * sensorTypes.length)];
+        await ingestTelemetry({
+          sensorId: 'sensor-1',
+          sensorType: type,
+          value: Math.random() * 120,
+          metadata: { location: 'Factory Floor 1' },
+        });
+      }, 800);
+    }
+  }, [isSimulating]);
 
   /* --- Reset handler --- */
   const onReset = useCallback(() => {
@@ -363,16 +345,9 @@ function FlowCanvas() {
   /* --- MiniMap node color by category --- */
   const getNodeColor = useCallback((node: Node) => {
     const type = node.type || '';
-    if (type.includes('Source') || type.includes('source') || type.includes('timer'))
-      return '#34d399';
-    if (type.includes('math') || type.includes('Math'))
-      return '#a78bfa';
-    if (type.includes('Action') || type.includes('action'))
-      return '#fbbf24';
-    if (type.includes('ai') || type.includes('Ai') || type.includes('Llm'))
-      return '#f43f5e'; // rose for AI
-    if (type.includes('transform') || type.includes('Transform'))
-      return '#818cf8'; // indigo for Transform
+    if (type.includes('sensor')) return '#34d399';
+    if (type.includes('filter')) return '#a78bfa';
+    if (type.includes('action')) return '#fbbf24';
     return '#64748b';
   }, []);
 
@@ -423,7 +398,23 @@ function FlowCanvas() {
           pannable
           zoomable
         />
-        <CanvasToolbar onReset={onReset} onSave={onSave} onRestore={onRestore} onExport={onExport} onImport={onImport} onLayout={onLayout} onRun={onRun} isRunning={isRunning} />
+        <CanvasToolbar
+          onReset={onReset}
+          onSave={onSave}
+          onRestore={onRestore}
+          onExport={onExport}
+          onImport={onImport}
+          onLayout={onLayout}
+          onRun={onRun}
+          isRunning={isRunning}
+          onDeploy={onDeploy}
+          isDeploying={isDeploying}
+          deployStatus={deployStatus}
+          onToggleSimulate={onToggleSimulate}
+          isSimulating={isSimulating}
+          isConnected={isConnected}
+        />
+        <AlertsPanel alerts={alerts} isConnected={isConnected} onClear={clearAlerts} />
         {menu && <ContextMenu onClick={onPaneClick} {...menu} />}
       </ReactFlow>
       <input

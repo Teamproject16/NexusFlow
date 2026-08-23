@@ -2,7 +2,7 @@
 .canvas-toolbar {
   position: absolute;
   top: 16px;
-  right: 16px;
+  left: 16px;
   z-index: 5;
   display: flex;
   align-items: center;
@@ -25,6 +25,7 @@
   justify-content: center;
   color: var(--text-muted);
   transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .canvas-toolbar__btn:hover {
@@ -47,4 +48,67 @@
   height: 20px;
   background: var(--border);
   margin: 0 2px;
+}
+
+/* Deploy button with label */
+.canvas-toolbar__btn--deploy {
+  width: auto;
+  padding: 0 10px;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Simulate pulsing */
+.canvas-toolbar__btn--simulating svg {
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Button with text label */
+.canvas-toolbar__btn-label {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Backend status badge */
+.canvas-toolbar__status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.04);
+}
+
+.canvas-toolbar__status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #475569;
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+
+.canvas-toolbar__status-dot--on {
+  background: #34d399;
+  box-shadow: 0 0 6px #34d399;
+  animation: blink 2s ease infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.canvas-toolbar__status-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
 }

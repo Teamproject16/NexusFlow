@@ -2,56 +2,38 @@ import type { NodeTypes } from '@xyflow/react';
 
 /* Data Sources */
 import {
-  ApiSourceNode,
-  DbSourceNode,
-  FileSourceNode,
-  TimerSourceNode,
+  TurbineSensorNode,
+  TempSensorNode,
+  PressureSensorNode,
 } from './DataSourceNodes';
 
-/* Math Operations */
+/* Math Operations & Filters */
 import {
-  AddNode,
-  MultiplyNode,
-  AverageNode,
-  CompareNode,
+  MovingAverageNode,
+  ThresholdNode,
+  DataMergeNode,
 } from './MathNodes';
 
+/* Action Triggers */
 import {
+  SmsActionNode,
   EmailActionNode,
   WebhookActionNode,
-  LogActionNode,
-  SaveActionNode,
 } from './ActionNodes';
-
-/* AI Generation */
-import { LlmGenerateNode } from './AiNodes';
-
-/* Data Transformation */
-import { FilterNode, MapNode } from './TransformNodes';
 
 export const nodeTypes: NodeTypes = {
   /* --- Data Sources --- */
-  apiSource: ApiSourceNode,
-  dbSource: DbSourceNode,
-  fileSource: FileSourceNode,
-  timerSource: TimerSourceNode,
+  sensorTurbine: TurbineSensorNode,
+  sensorTemp: TempSensorNode,
+  sensorPressure: PressureSensorNode,
 
-  /* --- Math Operations --- */
-  mathAdd: AddNode,
-  mathMultiply: MultiplyNode,
-  mathAverage: AverageNode,
-  mathCompare: CompareNode,
+  /* --- Math Operations & Filters --- */
+  filterMovingAverage: MovingAverageNode,
+  filterThreshold: ThresholdNode,
+  filterMerge: DataMergeNode,
 
   /* --- Action Triggers --- */
-  emailAction: EmailActionNode,
-  webhookAction: WebhookActionNode,
-  logAction: LogActionNode,
-  saveAction: SaveActionNode,
-
-  /* --- AI Models --- */
-  aiLlm: LlmGenerateNode,
-
-  /* --- Data Transformation --- */
-  transformFilter: FilterNode,
-  transformMap: MapNode,
+  actionSms: SmsActionNode,
+  actionEmail: EmailActionNode,
+  actionWebhook: WebhookActionNode,
 };
