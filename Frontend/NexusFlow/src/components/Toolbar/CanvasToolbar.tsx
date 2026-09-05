@@ -1,5 +1,13 @@
+import { useState, useEffect } from 'react';
 import './CanvasToolbar.css';
 import { useReactFlow } from '@xyflow/react';
+
+const THEMES = [
+  { id: 'emerald', label: 'Emerald', color: '#10b981' },
+  { id: 'amber', label: 'Amber', color: '#f59e0b' },
+  { id: 'crimson', label: 'Crimson', color: '#f43f5e' },
+  { id: 'amethyst', label: 'Amethyst', color: '#a855f7' },
+] as const;
 
 interface CanvasToolbarProps {
   onReset: () => void;
@@ -16,15 +24,31 @@ interface CanvasToolbarProps {
   onToggleSimulate: () => void;
   isSimulating: boolean;
   isConnected: boolean;
+  onOpenDashboard: () => void;
+  isDashboardOpen: boolean;
 }
 
 function CanvasToolbar({
   onReset, onSave, onRestore, onExport, onImport,
   onLayout, onRun, isRunning,
   onDeploy, isDeploying, deployStatus,
-  onToggleSimulate, isSimulating, isConnected
+  onToggleSimulate, isSimulating, isConnected,
+  onOpenDashboard, isDashboardOpen
 }: CanvasToolbarProps) {
   const { zoomIn, zoomOut, fitView } = useReactFlow();
+  const [activeTheme, setActiveTheme] = useState<string>(() => {
+    return localStorage.getItem('nexusflow-theme') || 'emerald';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', activeTheme);
+  }, [activeTheme]);
+
+  const handleSelectTheme = (themeId: string) => {
+    setActiveTheme(themeId);
+    document.documentElement.setAttribute('data-theme', themeId);
+    localStorage.setItem('nexusflow-theme', themeId);
+  };
 
   const deployLabel = isDeploying ? 'Deploying…' : deployStatus === 'success' ? '✓ Deployed' : deployStatus === 'error' ? '✕ Failed' : 'Deploy';
   const deployColor = deployStatus === 'success' ? 'var(--accent-emerald)' : deployStatus === 'error' ? '#ef4444' : 'var(--accent)';
@@ -40,6 +64,27 @@ function CanvasToolbar({
         <span className={`canvas-toolbar__status-dot ${isConnected ? 'canvas-toolbar__status-dot--on' : ''}`} />
         <span className="canvas-toolbar__status-label">{isConnected ? 'Live' : 'Offline'}</span>
       </div>
+
+      <div className="canvas-toolbar__divider" />
+
+      {/* Live Dashboard Toggle Button */}
+      <button
+        className={`canvas-toolbar__btn ${isDashboardOpen ? 'canvas-toolbar__btn--simulating' : ''}`}
+        onClick={onOpenDashboard}
+        title="Open Live Telemetry Dashboard (Recharts)"
+        id="btn-live-dashboard"
+        style={{
+          background: isDashboardOpen ? 'rgba(16, 185, 129, 0.2)' : undefined,
+          color: isDashboardOpen ? '#34d399' : '#f59e0b',
+          border: isDashboardOpen ? '1px solid rgba(16, 185, 129, 0.4)' : undefined,
+          fontWeight: 600,
+        }}
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+        </svg>
+        <span className="canvas-toolbar__btn-label">{isDashboardOpen ? 'Canvas View' : 'Live Dashboard'}</span>
+      </button>
 
       <div className="canvas-toolbar__divider" />
 
@@ -171,6 +216,24 @@ function CanvasToolbar({
           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
         </svg>
       </button>
+
+      <div className="canvas-toolbar__divider" />
+
+      {/* Theme Switcher */}
+      <div className="canvas-toolbar__theme-picker" title="Switch Theme (Emerald / Amber / Crimson / Amethyst)">
+        <span className="canvas-toolbar__theme-title">Theme</span>
+        {THEMES.map((t) => (
+          <button
+            key={t.id}
+            className={`canvas-toolbar__theme-btn ${activeTheme === t.id ? 'canvas-toolbar__theme-btn--active' : ''}`}
+            onClick={() => handleSelectTheme(t.id)}
+            title={`${t.label} Theme`}
+            style={{ color: t.color }}
+          >
+            <span className="canvas-toolbar__theme-swatch" style={{ background: t.color }} />
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

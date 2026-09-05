@@ -1,0 +1,45 @@
+/* Glowing Edge Styles */
+.glowing-edge__glow-path {
+  stroke-linecap: round;
+  transition: stroke 0.3s ease, stroke-width 0.3s ease, opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.glowing-edge__pulse-circle {
+  filter: drop-shadow(0 0 6px var(--accent-glow));
+}
+
+@keyframes edgePulseAnimation {
+  0% {
+    stroke-dashoffset: 40;
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.9;
+  }
+}
+
+.glowing-edge--active .react-flow__edge-path {
+  stroke-width: 3.5px !important;
+  stroke: #10b981 !important;
+  filter: drop-shadow(0 0 8px #10b981) drop-shadow(0 0 16px rgba(16, 185, 129, 0.6));
+  animation: edgePulseAnimation 0.8s linear infinite;
+}
+
+.glowing-edge--active.glowing-edge--action .react-flow__edge-path {
+  stroke: #f97316 !important;
+  filter: drop-shadow(0 0 8px #f97316) drop-shadow(0 0 16px rgba(249, 115, 22, 0.6));
+}
+
+.glowing-edge--active.glowing-edge--filter .react-flow__edge-path {
+  stroke: #f59e0b !important;
+  filter: drop-shadow(0 0 8px #f59e0b) drop-shadow(0 0 16px rgba(245, 158, 11, 0.6));
+}
+
+.glowing-edge--idle .react-flow__edge-path {
+  transition: stroke 0.6s ease, filter 0.6s ease, stroke-width 0.6s ease;
+}

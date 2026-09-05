@@ -16,7 +16,7 @@
   min-width: 180px;
   max-width: 220px;
   border-radius: var(--radius);
-  background: rgba(20, 20, 45, 0.92);
+  background: rgba(20, 23, 30, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
@@ -29,27 +29,28 @@
 .custom-node:hover {
   box-shadow: var(--shadow-lg);
   transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 /* ===== Selected States ===== */
 .react-flow__node.selected .custom-node {
   border-color: var(--accent-glow);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2), var(--shadow-lg);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25), var(--shadow-lg);
 }
 
 .react-flow__node.selected .custom-node--data-source {
   border-color: var(--accent-emerald);
-  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.2), var(--shadow-lg);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25), var(--shadow-lg);
 }
 
 .react-flow__node.selected .custom-node--math {
-  border-color: #a78bfa;
-  box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2), var(--shadow-lg);
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25), var(--shadow-lg);
 }
 
 .react-flow__node.selected .custom-node--action {
   border-color: var(--accent-amber);
-  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.2), var(--shadow-lg);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.25), var(--shadow-lg);
 }
 
 /* ===== Node Header ===== */
@@ -66,17 +67,17 @@
 }
 
 .custom-node__header--data-source {
-  background: linear-gradient(135deg, rgba(52, 211, 153, 0.2), rgba(52, 211, 153, 0.05));
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(16, 185, 129, 0.05));
   color: var(--accent-emerald);
 }
 
 .custom-node__header--math {
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(167, 139, 250, 0.05));
-  color: #a78bfa;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(245, 158, 11, 0.05));
+  color: #f59e0b;
 }
 
 .custom-node__header--action {
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(251, 191, 36, 0.05));
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.22), rgba(249, 115, 22, 0.05));
   color: var(--accent-amber);
 }
 
@@ -180,29 +181,29 @@
   background: var(--accent-emerald) !important;
 }
 
-/* Math handles (violet) */
+/* Math handles (amber gold) */
 .custom-handle--math {
-  border-color: #a78bfa !important;
+  border-color: #f59e0b !important;
 }
 
 .custom-handle--math:hover {
-  box-shadow: 0 0 8px rgba(167, 139, 250, 0.5) !important;
-  background: #a78bfa !important;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.5) !important;
+  background: #f59e0b !important;
 }
 
-/* Action handles (amber) */
+/* Action handles (flame orange) */
 .custom-handle--action {
   border-color: var(--accent-amber) !important;
 }
 
 .custom-handle--action:hover {
-  box-shadow: 0 0 8px rgba(251, 191, 36, 0.5) !important;
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.5) !important;
   background: var(--accent-amber) !important;
 }
 
 /* ===== Built-in Controls Override ===== */
 .flow-controls {
-  background: rgba(15, 15, 30, 0.85) !important;
+  background: rgba(18, 20, 26, 0.9) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border) !important;

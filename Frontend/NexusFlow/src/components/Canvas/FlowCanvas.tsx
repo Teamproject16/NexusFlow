@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, type DragEvent } from 'react';
+import { useState, useCallback, useRef, useMemo, type DragEvent } from 'react';
 import {
   ReactFlow,
   Background,
@@ -19,14 +19,22 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import { nodeTypes } from '../nodes/nodeTypes';
+import GlowingEdge from './GlowingEdge';
 import CanvasToolbar from '../Toolbar/CanvasToolbar';
 import ContextMenu from './ContextMenu';
 import AlertsPanel from './AlertsPanel';
+import NodeInspectorModal from '../Inspector/NodeInspectorModal';
+import LiveDashboard from '../Dashboard/LiveDashboard';
 import { getLayoutedElements } from '../../utils/layout';
 import { runWorkflow, type NodeStatus } from '../../utils/engine';
 import { deployGraph, ingestTelemetry } from '../../utils/api';
 import { useBackendSocket } from '../../hooks/useBackendSocket';
 import './FlowCanvas.css';
+
+/* ===== Edge Types ===== */
+const edgeTypes = {
+  glowing: GlowingEdge,
+};
 
 /* ===== Initial Seed Data (IoT Pipeline) ===== */
 const initialNodes: Node[] = [
@@ -34,19 +42,31 @@ const initialNodes: Node[] = [
     id: 'sensor-1',
     type: 'sensorTurbine',
     position: { x: 100, y: 150 },
-    data: { label: 'Turbine Sensor', description: 'Vibration & RPM' },
+    data: { label: 'Turbine Sensor', description: 'Vibration & RPM', sensorId: 'sensor-1' },
   },
   {
     id: 'filter-1',
     type: 'filterMovingAverage',
     position: { x: 450, y: 150 },
-    data: { label: 'Moving Average', description: 'Smooth noisy telemetry' },
+    data: { label: 'Moving Average', description: 'Smooth noisy telemetry', windowSize: 5 },
+  },
+  {
+    id: 'filter-2',
+    type: 'filterThreshold',
+    position: { x: 750, y: 150 },
+    data: { label: 'Threshold Check', description: 'Branch if value > 75', operator: '>', threshold: 75 },
   },
   {
     id: 'action-1',
+    type: 'actionWebhook',
+    position: { x: 1050, y: 100 },
+    data: { label: 'Outbound Webhook', description: 'HTTP POST webhook', webhookUrl: 'http://127.0.0.1:3000/api/webhook-test' },
+  },
+  {
+    id: 'action-2',
     type: 'actionSms',
-    position: { x: 800, y: 150 },
-    data: { label: 'SMS Alert', description: 'Send text notification' },
+    position: { x: 1050, y: 220 },
+    data: { label: 'SMS Alert', description: 'Twilio SMS Notification', phoneNumber: '+1-555-0199' },
   },
 ];
 
@@ -56,18 +76,36 @@ const initialEdges: Edge[] = [
     source: 'sensor-1',
     target: 'filter-1',
     animated: true,
-    type: 'smoothstep',
+    type: 'glowing',
     markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14 },
-    style: { stroke: '#34d399', strokeWidth: 2 },
+    style: { stroke: '#10b981', strokeWidth: 2 },
   },
   {
     id: 'e-2-3',
     source: 'filter-1',
+    target: 'filter-2',
+    animated: true,
+    type: 'glowing',
+    markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14 },
+    style: { stroke: '#f59e0b', strokeWidth: 2 },
+  },
+  {
+    id: 'e-3-4',
+    source: 'filter-2',
     target: 'action-1',
     animated: true,
-    type: 'smoothstep',
+    type: 'glowing',
     markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14 },
-    style: { stroke: '#8b5cf6', strokeWidth: 2 },
+    style: { stroke: '#f97316', strokeWidth: 2 },
+  },
+  {
+    id: 'e-3-5',
+    source: 'filter-2',
+    target: 'action-2',
+    animated: true,
+    type: 'glowing',
+    markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14 },
+    style: { stroke: '#ea580c', strokeWidth: 2 },
   },
 ];
 
@@ -78,16 +116,16 @@ function getNextNodeId() {
 }
 
 /* ===== Default labels per node type ===== */
-const defaultNodeData: Record<string, { label: string; description: string }> = {
-  sensorTurbine: { label: 'Turbine Sensor', description: 'Vibration & RPM' },
-  sensorTemp: { label: 'Temperature Sensor', description: 'Heat & Thermal Data' },
-  sensorPressure: { label: 'Pressure Sensor', description: 'Fluid & Gas PSI' },
-  filterMovingAverage: { label: 'Moving Average', description: 'Smooth noisy telemetry' },
-  filterThreshold: { label: 'Threshold Check', description: 'Branch if value > X' },
+const defaultNodeData: Record<string, { label: string; description: string; [key: string]: any }> = {
+  sensorTurbine: { label: 'Turbine Sensor', description: 'Vibration & RPM', sensorId: 'sensor-1' },
+  sensorTemp: { label: 'Temperature Sensor', description: 'Heat & Thermal Data', sensorId: 'sensor-2' },
+  sensorPressure: { label: 'Pressure Sensor', description: 'Fluid & Gas PSI', sensorId: 'sensor-3' },
+  filterMovingAverage: { label: 'Moving Average', description: 'Smooth noisy telemetry', windowSize: 5 },
+  filterThreshold: { label: 'Threshold Check', description: 'Branch if value > X', operator: '>', threshold: 80 },
   filterMerge: { label: 'Data Merge', description: 'Combine data streams' },
-  actionSms: { label: 'SMS Alert', description: 'Send text notification' },
-  actionEmail: { label: 'Email Alert', description: 'Send email alert' },
-  actionWebhook: { label: 'Webhook Trigger', description: 'Trigger external API' },
+  actionSms: { label: 'SMS Alert', description: 'Send text notification', phoneNumber: '+1-555-0199' },
+  actionEmail: { label: 'Email Alert', description: 'Send email alert', email: 'ops-lead@nexusflow.io' },
+  actionWebhook: { label: 'Webhook Trigger', description: 'Trigger external API', webhookUrl: 'http://127.0.0.1:3000/api/webhook-test' },
 };
 
 /* ===== FlowCanvas Component ===== */
@@ -102,7 +140,43 @@ function FlowCanvas() {
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployStatus, setDeployStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [isSimulating, setIsSimulating] = useState(false);
-  const { isConnected, alerts, clearAlerts } = useBackendSocket();
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+
+  const {
+    isConnected,
+    alerts,
+    liveTelemetry,
+    outboundHistory,
+    activeEdgePulses,
+    sendTelemetry,
+    clearAlerts,
+  } = useBackendSocket();
+
+  /* --- Glowing Edges: Dynamically inject glow state based on activeEdgePulses --- */
+  const displayEdges = useMemo(() => {
+    return edges.map((edge) => {
+      const isPulsing = Boolean(
+        activeEdgePulses[edge.id] || activeEdgePulses[`${edge.source}-${edge.target}`]
+      );
+      const targetNode = nodes.find((n) => n.id === edge.target);
+      const category = targetNode?.type?.startsWith('action')
+        ? 'action'
+        : targetNode?.type?.startsWith('sensor')
+        ? 'sensor'
+        : 'filter';
+
+      return {
+        ...edge,
+        type: 'glowing',
+        data: {
+          ...(edge.data || {}),
+          isActive: isPulsing,
+          category,
+        },
+      };
+    });
+  }, [edges, activeEdgePulses, nodes]);
 
   /* --- Connection handler --- */
   const onConnect = useCallback(
@@ -110,7 +184,7 @@ function FlowCanvas() {
       const newEdge = {
         ...params,
         animated: true,
-        type: 'smoothstep',
+        type: 'glowing',
         markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14 },
         style: { stroke: 'var(--accent)', strokeWidth: 2 },
       };
@@ -122,10 +196,8 @@ function FlowCanvas() {
   /* --- Validation handler (prevent cycles & self-connection) --- */
   const isValidConnection = useCallback(
     (connection: Edge | Connection) => {
-      // Prevent self-connection
       if (connection.source === connection.target) return false;
 
-      // Prevent cycles
       const targetNode = nodes.find((node) => node.id === connection.target);
       if (!targetNode) return false;
 
@@ -172,7 +244,7 @@ function FlowCanvas() {
         id: getNextNodeId(),
         type: nodeType,
         position,
-        data: { label: defaults.label, description: defaults.description },
+        data: { ...defaults },
       };
 
       setNodes((nds) => [...nds, newNode]);
@@ -199,7 +271,7 @@ function FlowCanvas() {
     }
   }, [isDeploying, reactFlowInstance]);
 
-  /* --- Simulate Telemetry handler --- */
+  /* --- Simulate Telemetry handler (WebSocket + REST) --- */
   const simulateRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onToggleSimulate = useCallback(() => {
     if (isSimulating) {
@@ -208,24 +280,41 @@ function FlowCanvas() {
       setIsSimulating(false);
     } else {
       setIsSimulating(true);
-      simulateRef.current = setInterval(async () => {
+      simulateRef.current = setInterval(() => {
         const sensorTypes = ['sensorTurbine', 'sensorTemp', 'sensorPressure'];
         const type = sensorTypes[Math.floor(Math.random() * sensorTypes.length)];
-        await ingestTelemetry({
+        const val = Math.floor(40 + Math.random() * 85);
+
+        // High-velocity stream directly through WebSocket
+        sendTelemetry({
           sensorId: 'sensor-1',
           sensorType: type,
-          value: Math.random() * 120,
-          metadata: { location: 'Factory Floor 1' },
+          value: val,
         });
-      }, 800);
+
+        // Also backfill REST occasionally
+        if (Math.random() > 0.6) {
+          ingestTelemetry({
+            sensorId: 'sensor-1',
+            sensorType: type,
+            value: val,
+            metadata: { location: 'Turbine Bay Alpha' },
+          }).catch(() => {});
+        }
+      }, 750);
     }
-  }, [isSimulating]);
+  }, [isSimulating, sendTelemetry]);
 
   /* --- Reset handler --- */
   const onReset = useCallback(() => {
     setNodes([]);
     setEdges([]);
   }, [setNodes, setEdges]);
+
+  /* --- Node Click / Double Click Inspector handler --- */
+  const onNodeDoubleClick = useCallback((_: React.MouseEvent, node: Node) => {
+    setSelectedNode(node);
+  }, []);
 
   /* --- Context Menu handlers --- */
   const onNodeContextMenu = useCallback(
@@ -242,7 +331,27 @@ function FlowCanvas() {
     [setMenu]
   );
 
+  const onConfigureFromMenu = useCallback(
+    (nodeId: string) => {
+      const node = nodes.find((n) => n.id === nodeId);
+      if (node) {
+        setSelectedNode(node);
+      }
+    },
+    [nodes]
+  );
+
   const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
+
+  const handleSaveNodeConfig = useCallback(
+    (nodeId: string, updatedData: Record<string, unknown>) => {
+      updateNodeData(nodeId, updatedData);
+      setNodes((nds) =>
+        nds.map((n) => (n.id === nodeId ? { ...n, data: { ...n.data, ...updatedData } } : n))
+      );
+    },
+    [updateNodeData, setNodes]
+  );
 
   /* --- Layout handler --- */
   const onLayout = useCallback(() => {
@@ -259,17 +368,17 @@ function FlowCanvas() {
     });
   }, [nodes, edges, setNodes, setEdges, fitView]);
 
-  /* --- Run Workflow handler --- */
+  /* --- Run Workflow handler (local simulator) --- */
   const onRun = useCallback(async () => {
     if (isRunning) return;
     setIsRunning(true);
-    
+
     const updateStatus = (nodeId: string, status: NodeStatus) => {
       updateNodeData(nodeId, { status });
     };
 
     await runWorkflow(nodes, edges, updateStatus, 800);
-    
+
     setIsRunning(false);
   }, [isRunning, nodes, edges, updateNodeData]);
 
@@ -345,78 +454,108 @@ function FlowCanvas() {
   /* --- MiniMap node color by category --- */
   const getNodeColor = useCallback((node: Node) => {
     const type = node.type || '';
-    if (type.includes('sensor')) return '#34d399';
-    if (type.includes('filter')) return '#a78bfa';
-    if (type.includes('action')) return '#fbbf24';
-    return '#64748b';
+    if (type.includes('sensor')) return '#10b981';
+    if (type.includes('filter')) return '#f59e0b';
+    if (type.includes('action')) return '#f97316';
+    return '#6b7280';
   }, []);
 
   return (
     <div className="flow-canvas" ref={reactFlowWrapper} id="flow-canvas">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        isValidConnection={isValidConnection}
-        onDrop={onDrop}
-        onDragOver={onDragOver}
-        onNodeContextMenu={onNodeContextMenu}
-        onPaneClick={onPaneClick}
-        nodeTypes={nodeTypes}
-        connectionLineType={ConnectionLineType.SmoothStep}
-        connectionLineStyle={{ stroke: 'var(--accent-glow)', strokeWidth: 2 }}
-        fitView
-        fitViewOptions={{ padding: 0.25 }}
-        defaultEdgeOptions={{
-          animated: true,
-          type: 'smoothstep',
-        }}
-        proOptions={{ hideAttribution: true }}
-      >
-        <Background
-          variant={BackgroundVariant.Dots}
-          gap={20}
-          size={1}
-          color="rgba(148, 163, 184, 0.08)"
-        />
-        <Controls
-          className="flow-controls"
-          showInteractive={false}
-          position="bottom-left"
-        />
-        <MiniMap
-          className="flow-minimap"
-          nodeColor={getNodeColor}
-          maskColor="rgba(10, 10, 20, 0.7)"
-          style={{
-            backgroundColor: 'rgba(15, 15, 30, 0.8)',
-            borderRadius: '12px',
-            border: '1px solid rgba(148, 163, 184, 0.12)',
-          }}
-          pannable
-          zoomable
-        />
-        <CanvasToolbar
-          onReset={onReset}
-          onSave={onSave}
-          onRestore={onRestore}
-          onExport={onExport}
-          onImport={onImport}
-          onLayout={onLayout}
-          onRun={onRun}
-          isRunning={isRunning}
-          onDeploy={onDeploy}
-          isDeploying={isDeploying}
-          deployStatus={deployStatus}
-          onToggleSimulate={onToggleSimulate}
-          isSimulating={isSimulating}
+      {isDashboardOpen ? (
+        <LiveDashboard
+          liveTelemetry={liveTelemetry}
+          alerts={alerts}
+          outboundHistory={outboundHistory}
           isConnected={isConnected}
+          onSendTelemetry={sendTelemetry}
+          onBackToCanvas={() => setIsDashboardOpen(false)}
         />
-        <AlertsPanel alerts={alerts} isConnected={isConnected} onClear={clearAlerts} />
-        {menu && <ContextMenu onClick={onPaneClick} {...menu} />}
-      </ReactFlow>
+      ) : (
+        <ReactFlow
+          nodes={nodes}
+          edges={displayEdges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          isValidConnection={isValidConnection}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
+          onNodeContextMenu={onNodeContextMenu}
+          onNodeDoubleClick={onNodeDoubleClick}
+          onPaneClick={onPaneClick}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          connectionLineType={ConnectionLineType.SmoothStep}
+          connectionLineStyle={{ stroke: 'var(--accent-glow)', strokeWidth: 2 }}
+          fitView
+          fitViewOptions={{ padding: 0.25 }}
+          defaultEdgeOptions={{
+            animated: true,
+            type: 'glowing',
+          }}
+          proOptions={{ hideAttribution: true }}
+        >
+          <Background
+            variant={BackgroundVariant.Dots}
+            gap={20}
+            size={1}
+            color="rgba(255, 255, 255, 0.05)"
+          />
+          <Controls
+            className="flow-controls"
+            showInteractive={false}
+            position="bottom-left"
+          />
+          <MiniMap
+            className="flow-minimap"
+            nodeColor={getNodeColor}
+            maskColor="rgba(12, 13, 17, 0.75)"
+            style={{
+              backgroundColor: 'rgba(18, 20, 26, 0.95)',
+              borderRadius: '12px',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+            pannable
+            zoomable
+          />
+          <CanvasToolbar
+            onReset={onReset}
+            onSave={onSave}
+            onRestore={onRestore}
+            onExport={onExport}
+            onImport={onImport}
+            onLayout={onLayout}
+            onRun={onRun}
+            isRunning={isRunning}
+            onDeploy={onDeploy}
+            isDeploying={isDeploying}
+            deployStatus={deployStatus}
+            onToggleSimulate={onToggleSimulate}
+            isSimulating={isSimulating}
+            isConnected={isConnected}
+            onOpenDashboard={() => setIsDashboardOpen((prev) => !prev)}
+            isDashboardOpen={isDashboardOpen}
+          />
+          <AlertsPanel alerts={alerts} isConnected={isConnected} onClear={clearAlerts} />
+          {menu && (
+            <ContextMenu
+              onClick={onPaneClick}
+              onConfigure={onConfigureFromMenu}
+              {...menu}
+            />
+          )}
+        </ReactFlow>
+      )}
+
+      {/* Node Inspector Drawer */}
+      <NodeInspectorModal
+        node={selectedNode}
+        isOpen={Boolean(selectedNode)}
+        onClose={() => setSelectedNode(null)}
+        onSave={handleSaveNodeConfig}
+      />
+
       <input
         type="file"
         accept=".json"
@@ -429,3 +568,4 @@ function FlowCanvas() {
 }
 
 export default FlowCanvas;
+

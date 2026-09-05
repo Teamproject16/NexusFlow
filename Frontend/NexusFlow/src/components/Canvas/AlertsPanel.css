@@ -1,12 +1,11 @@
-/* ===== Alerts Panel ===== */
 .alerts-panel {
   position: absolute;
   top: 16px;
   right: 16px;
-  width: 280px;
+  width: 290px;
   max-height: 480px;
-  background: rgba(10, 10, 20, 0.88);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(18, 20, 26, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   backdrop-filter: blur(20px);
   display: flex;
@@ -117,9 +116,9 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.alerts-panel__alert--actionSms  { border-color: rgba(52, 211, 153, 0.25); }
-.alerts-panel__alert--actionEmail { border-color: rgba(167, 139, 250, 0.25); }
-.alerts-panel__alert--actionWebhook { border-color: rgba(251, 191, 36, 0.25); }
+.alerts-panel__alert--actionSms     { border-color: rgba(16, 185, 129, 0.35); }
+.alerts-panel__alert--actionEmail   { border-color: rgba(234, 88, 12, 0.35); }
+.alerts-panel__alert--actionWebhook { border-color: rgba(245, 158, 11, 0.35); }
 
 .alerts-panel__alert-icon {
   font-size: 18px;

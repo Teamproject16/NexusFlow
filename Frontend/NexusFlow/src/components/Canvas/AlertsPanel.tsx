@@ -20,7 +20,7 @@ function AlertsPanel({ alerts, isConnected, onClear }: AlertsPanelProps) {
       <div className="alerts-panel__header">
         <div className="alerts-panel__title">
           <div className={`alerts-panel__status-dot ${isConnected ? 'alerts-panel__status-dot--connected' : ''}`} />
-          <span>Live Alerts</span>
+          <span>Live Alerts &amp; Outbound</span>
           {alerts.length > 0 && (
             <span className="alerts-panel__count">{alerts.length}</span>
           )}
@@ -49,10 +49,31 @@ function AlertsPanel({ alerts, isConnected, onClear }: AlertsPanelProps) {
                 {ALERT_ICONS[alert.type] || '⚡'}
               </span>
               <div className="alerts-panel__alert-body">
-                <span className="alerts-panel__alert-type">{alert.type}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="alerts-panel__alert-type">{alert.label || alert.type}</span>
+                  {alert.outbound && (
+                    <span
+                      style={{
+                        fontSize: 9,
+                        padding: '1px 5px',
+                        borderRadius: 4,
+                        background: 'rgba(16,185,129,0.2)',
+                        color: '#34d399',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {alert.outbound.status.toUpperCase()}
+                    </span>
+                  )}
+                </div>
                 <span className="alerts-panel__alert-value">
                   value: <strong>{typeof alert.data?.value === 'number' ? alert.data.value.toFixed(2) : '—'}</strong>
                 </span>
+                {alert.outbound?.recipient && (
+                  <span style={{ fontSize: 10, color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    &gt; {alert.outbound.recipient}
+                  </span>
+                )}
                 <span className="alerts-panel__alert-time">
                   {new Date(alert.timestamp).toLocaleTimeString()}
                 </span>

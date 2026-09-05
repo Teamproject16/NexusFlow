@@ -34,4 +34,25 @@ export async function ingestTelemetry(payload: {
   });
 }
 
+export async function runIngestionAudit(): Promise<{
+  success: boolean;
+  audit: string;
+  target: string;
+  totalRecords: number;
+  durationSeconds: number;
+  writesPerSecond: number;
+  storageOptimization: string;
+  status: string;
+}> {
+  const res = await fetch(`${API_BASE}/api/telemetry/audit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Failed to run ingestion audit');
+  }
+  return res.json();
+}
+
 export const BACKEND_URL = API_BASE;
