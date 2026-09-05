@@ -1,5 +1,9 @@
 const { Subject, merge, bufferCount, map, filter, tap } = require('rxjs');
 const axios = require('axios');
+let Alert = null;
+try {
+  Alert = require('../models/Alert');
+} catch (e) {}
 
 class RxEngine {
   constructor() {
@@ -267,6 +271,10 @@ class RxEngine {
 
     this.alertHistory.unshift(alertPayload);
     if (this.alertHistory.length > 100) this.alertHistory.pop();
+
+    if (Alert) {
+      Alert.create(alertPayload).catch(() => {});
+    }
 
     console.log(`[RxEngine Action] ${alertPayload.message} | Outbound: ${outboundResult.status}`);
 

@@ -14,13 +14,13 @@
   width: 420px;
   max-width: 90vw;
   height: 100vh;
-  background: #13151b;
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-sidebar);
+  border-left: 1px solid var(--border);
   box-shadow: -8px 0 32px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
   animation: slideLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  color: #f1f5f9;
+  color: var(--text);
 }
 
 @keyframes fadeIn {
@@ -142,9 +142,9 @@
 .inspector-input,
 .inspector-select,
 .inspector-textarea {
-  background: rgba(18, 20, 26, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #f8fafc;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text);
   padding: 10px 12px;
   border-radius: 8px;
   font-size: 14px;
@@ -155,8 +155,8 @@
 .inspector-input:focus,
 .inspector-select:focus,
 .inspector-textarea:focus {
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--border-hover);
 }
 
 .inspector-row {

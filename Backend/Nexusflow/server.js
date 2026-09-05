@@ -226,6 +226,17 @@ app.get('/api/stats', (req, res) => {
   res.json({ success: true, stats: engine.getStats() });
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    dbConnected: require('./config/db').getDBStatus(),
+    uptime: Math.floor(process.uptime()),
+    stats: engine.getStats(),
+    timestamp: new Date().toISOString()
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`NexusFlow Backend listening on port ${PORT}`);

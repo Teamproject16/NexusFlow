@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react';
 import './CanvasToolbar.css';
 import { useReactFlow } from '@xyflow/react';
-
-const THEMES = [
-  { id: 'emerald', label: 'Emerald', color: '#10b981' },
-  { id: 'amber', label: 'Amber', color: '#f59e0b' },
-  { id: 'crimson', label: 'Crimson', color: '#f43f5e' },
-  { id: 'amethyst', label: 'Amethyst', color: '#a855f7' },
-] as const;
+import { ThemeSelectorModal, ALL_THEMES } from '../Theme/ThemeSelectorModal';
 
 interface CanvasToolbarProps {
   onReset: () => void;
@@ -26,6 +20,9 @@ interface CanvasToolbarProps {
   isConnected: boolean;
   onOpenDashboard: () => void;
   isDashboardOpen: boolean;
+  onToggleAlerts: () => void;
+  isAlertsOpen: boolean;
+  alertsCount: number;
 }
 
 function CanvasToolbar({
@@ -33,12 +30,13 @@ function CanvasToolbar({
   onLayout, onRun, isRunning,
   onDeploy, isDeploying, deployStatus,
   onToggleSimulate, isSimulating, isConnected,
-  onOpenDashboard, isDashboardOpen
+  onOpenDashboard, isDashboardOpen, onToggleAlerts, isAlertsOpen, alertsCount
 }: CanvasToolbarProps) {
   const { zoomIn, zoomOut, fitView } = useReactFlow();
   const [activeTheme, setActiveTheme] = useState<string>(() => {
     return localStorage.getItem('nexusflow-theme') || 'emerald';
   });
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', activeTheme);
@@ -124,6 +122,24 @@ function CanvasToolbar({
           </svg>
         )}
         <span className="canvas-toolbar__btn-label">{isSimulating ? 'Stop' : 'Simulate'}</span>
+      </button>
+
+      <div className="canvas-toolbar__divider" />
+
+      {/* Alerts */}
+      <button
+        className={`canvas-toolbar__btn ${isAlertsOpen ? 'canvas-toolbar__btn--simulating' : ''}`}
+        onClick={onToggleAlerts}
+        title={isAlertsOpen ? 'Close Live Alerts' : 'Open Live Alerts'}
+        id="btn-alerts"
+        aria-label={isAlertsOpen ? 'Close Live Alerts' : 'Open Live Alerts'}
+        aria-pressed={isAlertsOpen}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+        {alertsCount > 0 && <span className="canvas-toolbar__alert-badge">{alertsCount}</span>}
       </button>
 
       <div className="canvas-toolbar__divider" />
@@ -219,21 +235,52 @@ function CanvasToolbar({
 
       <div className="canvas-toolbar__divider" />
 
-      {/* Theme Switcher */}
-      <div className="canvas-toolbar__theme-picker" title="Switch Theme (Emerald / Amber / Crimson / Amethyst)">
-        <span className="canvas-toolbar__theme-title">Theme</span>
-        {THEMES.map((t) => (
+      {/* Theme Customizer & Quick Switcher */}
+      <div className="canvas-toolbar__theme-group">
+        <button
+          className="canvas-toolbar__btn canvas-toolbar__btn--theme"
+          onClick={() => setIsThemeModalOpen(true)}
+          title="Open Theme Customizer (10 Color Variants)"
+          id="btn-open-themes"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/>
+            <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/>
+            <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/>
+            <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>
+            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+          </svg>
+          <span className="canvas-toolbar__btn-label">Themes</span>
+        </button>
+
+        <div className="canvas-toolbar__theme-picker" title="Quick Theme Toggle">
+          {ALL_THEMES.slice(0, 5).map((t) => (
+            <button
+              key={t.id}
+              className={`canvas-toolbar__theme-btn ${activeTheme === t.id ? 'canvas-toolbar__theme-btn--active' : ''}`}
+              onClick={() => handleSelectTheme(t.id)}
+              title={`${t.name} (${t.emoji})`}
+              style={{ color: t.accent }}
+            >
+              <span className="canvas-toolbar__theme-swatch" style={{ background: t.accent }} />
+            </button>
+          ))}
           <button
-            key={t.id}
-            className={`canvas-toolbar__theme-btn ${activeTheme === t.id ? 'canvas-toolbar__theme-btn--active' : ''}`}
-            onClick={() => handleSelectTheme(t.id)}
-            title={`${t.label} Theme`}
-            style={{ color: t.color }}
+            className="canvas-toolbar__theme-more"
+            onClick={() => setIsThemeModalOpen(true)}
+            title="Explore all 10 Color Variants..."
           >
-            <span className="canvas-toolbar__theme-swatch" style={{ background: t.color }} />
+            +{ALL_THEMES.length - 5}
           </button>
-        ))}
+        </div>
       </div>
+
+      <ThemeSelectorModal
+        isOpen={isThemeModalOpen}
+        onClose={() => setIsThemeModalOpen(false)}
+        activeTheme={activeTheme}
+        onSelectTheme={handleSelectTheme}
+      />
     </div>
   );
 }

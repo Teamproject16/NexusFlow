@@ -141,6 +141,7 @@ function FlowCanvas() {
   const [deployStatus, setDeployStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [isSimulating, setIsSimulating] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
   const {
@@ -274,6 +275,7 @@ function FlowCanvas() {
   /* --- Simulate Telemetry handler (WebSocket + REST) --- */
   const simulateRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onToggleSimulate = useCallback(() => {
+    setIsAlertsOpen(true);
     if (isSimulating) {
       if (simulateRef.current) clearInterval(simulateRef.current);
       simulateRef.current = null;
@@ -371,6 +373,7 @@ function FlowCanvas() {
   /* --- Run Workflow handler (local simulator) --- */
   const onRun = useCallback(async () => {
     if (isRunning) return;
+    setIsAlertsOpen(true);
     setIsRunning(true);
 
     const updateStatus = (nodeId: string, status: NodeStatus) => {
@@ -536,8 +539,13 @@ function FlowCanvas() {
             isConnected={isConnected}
             onOpenDashboard={() => setIsDashboardOpen((prev) => !prev)}
             isDashboardOpen={isDashboardOpen}
+            onToggleAlerts={() => setIsAlertsOpen((prev) => !prev)}
+            isAlertsOpen={isAlertsOpen}
+            alertsCount={alerts.length}
           />
-          <AlertsPanel alerts={alerts} isConnected={isConnected} onClear={clearAlerts} />
+          {isAlertsOpen && (
+            <AlertsPanel alerts={alerts} isConnected={isConnected} onClear={clearAlerts} />
+          )}
           {menu && (
             <ContextMenu
               onClick={onPaneClick}

@@ -29,12 +29,12 @@
   width: 40px;
   height: 40px;
   border-radius: var(--radius);
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, #10b981, #059669);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+  box-shadow: 0 0 22px rgba(16, 185, 129, 0.45);
 }
 
 .sidebar__logo-text h1 {
